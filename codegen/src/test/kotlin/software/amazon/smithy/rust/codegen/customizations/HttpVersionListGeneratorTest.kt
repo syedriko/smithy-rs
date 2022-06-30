@@ -187,7 +187,7 @@ internal class HttpVersionListGeneratorTest {
             }
         """.asSmithyModel()
 
-        val (ctx, testDir) = generatePluginContext(model, addModuleToEventStreamAllowList = true)
+        val (ctx, testDir) = generatePluginContext(model)
         val moduleName = ctx.settings.expectStringMember("module").value.replace('-', '_')
         val codegenDecorator = object : RustCodegenDecorator {
             override val name: String = "add tests"

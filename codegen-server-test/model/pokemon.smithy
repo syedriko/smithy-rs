@@ -23,16 +23,20 @@ resource PokemonSpecies {
 }
 
 /// Capture Pokémons via event streams
-@http(uri: "/capture-pokemon-event", method: "POST")
+@http(uri: "/capture-pokemon-event/{region}", method: "POST")
 operation CapturePokemonOperation {
     input: CapturePokemonOperationEventsInput,
     output: CapturePokemonOperationEventsOutput,
+    errors: [UnsupportedRegionError]
 }
 
 @input
 structure CapturePokemonOperationEventsInput {
     @httpPayload
     events: AttemptCapturingPokemonEvent,
+    @httpLabel
+    @required
+    region: String,
 }
 
 @output
@@ -47,11 +51,8 @@ union AttemptCapturingPokemonEvent {
 }
 
 structure CapturingEvent {
-    @eventHeader
-    region: String,
-
-    @eventPayload
-    payload: CapturingPayload
+    payload: CapturingPayload,
+    masterball_unsuccessful: MasterBallUnsuccessful,
 }
 
 structure CapturingPayload {
@@ -65,15 +66,19 @@ union CapturePokemonEvents {
 }
 
 structure CaptureEvent {
-    @eventHeader
     name: String,
-
-    @eventHeader
+    captured: Boolean,
     shiny: Boolean,
-
-    @eventPayload
     pokedex_update: Blob,
+    invalid_pokeball: InvalidPokeballError,
 }
+
+@error("server")
+structure UnsupportedRegionError {}
+@error("client")
+structure InvalidPokeballError {}
+@error("server")
+structure MasterBallUnsuccessful {}
 
 /// Retrieve information about a Pokémon species.
 @readonly

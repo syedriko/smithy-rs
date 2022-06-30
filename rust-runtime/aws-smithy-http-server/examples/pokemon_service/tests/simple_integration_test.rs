@@ -40,7 +40,7 @@ fn get_pokemon_to_capture() -> String {
 async fn simple_integration_test() {
     let _program = PokemonService::run();
     // Give PokemonSérvice some time to start up.
-    time::sleep(Duration::from_millis(50)).await;
+    time::sleep(Duration::from_millis(500)).await;
 
     let service_statistics_out = client().get_server_statistics().send().await.unwrap();
     assert_eq!(0, service_statistics_out.calls_count.unwrap());
@@ -71,14 +71,13 @@ async fn simple_integration_test() {
 async fn event_stream_test() {
     let _program = PokemonService::run();
     // Give PokemonSérvice some time to start up.
-    time::sleep(Duration::from_millis(50)).await;
+    time::sleep(Duration::from_millis(500)).await;
 
     let mut team = vec![];
     let input_stream = stream! {
         // Always Pikachu
         yield Ok(AttemptCapturingPokemonEvent::Event(
             CapturingEvent::builder()
-            .region("Kanto")
             .payload(CapturingPayload::builder()
                 .name("Pikachu")
                 .pokeball("Master Ball")
@@ -87,7 +86,6 @@ async fn event_stream_test() {
         ));
         yield Ok(AttemptCapturingPokemonEvent::Event(
             CapturingEvent::builder()
-            .region("Kanto")
             .payload(CapturingPayload::builder()
                 .name("Regieleki")
                 .pokeball("Fast Ball")
@@ -96,7 +94,6 @@ async fn event_stream_test() {
         ));
         yield Ok(AttemptCapturingPokemonEvent::Event(
             CapturingEvent::builder()
-            .region("Kanto")
             .payload(CapturingPayload::builder()
                 .name("Charizard")
                 .pokeball("Great Ball")
@@ -109,6 +106,7 @@ async fn event_stream_test() {
     let mut output = client()
         .capture_pokemon_operation()
         .events(input_stream.into())
+        .region("Kanto")
         .send()
         .await
         .unwrap();
@@ -137,13 +135,33 @@ async fn event_stream_test() {
         }
     }
 
+    // Try another region
+    let input_stream = stream! {
+        yield Ok(AttemptCapturingPokemonEvent::Event(
+            CapturingEvent::builder()
+            .payload(CapturingPayload::builder()
+                .name("Charizard")
+                .pokeball("Great Ball")
+                .build())
+            .build()
+        ));
+    };
+    let output = client()
+        .capture_pokemon_operation()
+        .events(input_stream.into())
+        .region("Johto")
+        .send()
+        .await;
+    println!("{:?}", output);
+    assert_eq!(output.is_err(), true);
+
+    // Complete the team
     while team.len() < 6 {
         let pokeball = get_pokeball();
         let pokemon = get_pokemon_to_capture();
         let input_stream = stream! {
             yield Ok(AttemptCapturingPokemonEvent::Event(
                 CapturingEvent::builder()
-                .region("Kanto")
                 .payload(CapturingPayload::builder()
                     .name(pokemon)
                     .pokeball(pokeball)
@@ -154,6 +172,7 @@ async fn event_stream_test() {
         let mut output = client()
             .capture_pokemon_operation()
             .events(input_stream.into())
+            .region("Kanto")
             .send()
             .await
             .unwrap();

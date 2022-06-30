@@ -20,6 +20,7 @@ import software.amazon.smithy.model.shapes.StringShape
 import software.amazon.smithy.model.shapes.StructureShape
 import software.amazon.smithy.model.shapes.TimestampShape
 import software.amazon.smithy.model.shapes.UnionShape
+import software.amazon.smithy.model.traits.ErrorTrait
 import software.amazon.smithy.model.traits.EventHeaderTrait
 import software.amazon.smithy.model.traits.EventPayloadTrait
 import software.amazon.smithy.rust.codegen.rustlang.CargoDependency
@@ -55,7 +56,8 @@ class EventStreamUnmarshallerGenerator(
 ) {
     private val unionSymbol = symbolProvider.toSymbol(unionShape)
     private val smithyEventStream = CargoDependency.SmithyEventStream(runtimeConfig)
-    private val operationErrorSymbol = RuntimeType("MessageStreamError", smithyEventStream, "aws_smithy_http::event_stream").toSymbol()
+    private val operationErrorSymbol =
+        RuntimeType("MessageStreamError", smithyEventStream, "aws_smithy_http::event_stream").toSymbol()
     private val eventStreamSerdeModule = RustModule.private("event_stream_serde")
     private val codegenScope = arrayOf(
         "Blob" to RuntimeType("Blob", CargoDependency.SmithyTypes(runtimeConfig), "aws_smithy_types"),
@@ -178,6 +180,18 @@ class EventStreamUnmarshallerGenerator(
                 withBlock("let parsed = ", ";") {
                     renderParseProtocolPayload(unionMember)
                 }
+                unionStruct.members()
+                    .filter { model.expectShape(it.target).hasTrait<ErrorTrait>() }
+                    .forEach {
+                        rustTemplate(
+                            """
+                            if let Some(error) = parsed.${it.memberName} {
+                                return Err(#{Error}::EventStreamError(Box::new(error)));
+                            }
+                            """,
+                            *codegenScope
+                        )
+                    }
                 rustTemplate(
                     "Ok(#{UnmarshalledMessage}::Event(#{Output}::$unionMemberName(parsed)))",
                     "Output" to unionSymbol,

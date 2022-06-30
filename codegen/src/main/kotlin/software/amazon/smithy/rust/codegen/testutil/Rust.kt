@@ -125,7 +125,7 @@ object TestWorkspace {
  * "cargo test".runCommand(path)
  * ```
  */
-fun generatePluginContext(model: Model, additionalSettings: ObjectNode = ObjectNode.builder().build(), addModuleToEventStreamAllowList: Boolean = false, service: String? = null, runtimeConfig: RuntimeConfig? = null): Pair<PluginContext, Path> {
+fun generatePluginContext(model: Model, additionalSettings: ObjectNode = ObjectNode.builder().build(), service: String? = null, runtimeConfig: RuntimeConfig? = null): Pair<PluginContext, Path> {
     val testDir = TestWorkspace.subproject()
     val moduleName = "test_${testDir.nameWithoutExtension}"
     val testPath = testDir.toPath()
@@ -143,16 +143,6 @@ fun generatePluginContext(model: Model, additionalSettings: ObjectNode = ObjectN
                 Node.from(((runtimeConfig ?: TestRuntimeConfig).runtimeCrateLocation).path)
             ).build()
         )
-
-    if (addModuleToEventStreamAllowList) {
-        settingsBuilder = settingsBuilder.withMember(
-            "codegen",
-            Node.objectNodeBuilder().withMember(
-                "eventStreamAllowList",
-                Node.fromStrings(moduleName)
-            ).build()
-        )
-    }
 
     val settings = settingsBuilder.merge(additionalSettings)
         .build()

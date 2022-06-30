@@ -21,7 +21,6 @@ val ServerTestSymbolVisitorConfig = SymbolVisitorConfig(
         includeFluentClient = false,
         addMessageToErrors = false,
         formatTimeoutSeconds = 20,
-        eventStreamAllowList = emptySet()
     ),
     handleRustBoxing = true,
     handleRequired = true

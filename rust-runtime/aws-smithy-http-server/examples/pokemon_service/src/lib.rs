@@ -186,7 +186,15 @@ pub async fn get_server_statistics(
 }
 
 /// Attempts to capture a Pokémon
-pub async fn capture_pokemon(mut input: input::CapturePokemonOperationInput) -> output::CapturePokemonOperationOutput {
+pub async fn capture_pokemon(
+    mut input: input::CapturePokemonOperationInput,
+) -> Result<output::CapturePokemonOperationOutput, error::CapturePokemonOperationError> {
+    if input.region != "Kanto" {
+        return Err(error::CapturePokemonOperationError::UnsupportedRegionError(
+            error::UnsupportedRegionError::builder().build(),
+        ));
+    }
+    // Only support Kanto
     let output_stream = stream! {
         loop {
             use std::time::Duration;
@@ -198,18 +206,15 @@ pub async fn capture_pokemon(mut input: input::CapturePokemonOperationInput) -> 
                         if let Ok(attempt) = capturing_event {
                             let payload = attempt.payload.clone().unwrap_or(CapturingPayload::builder().build());
                             let pokeball = payload.pokeball.as_ref().map(|ball| ball.as_str()).unwrap_or("");
-                            let region = attempt.region.as_ref().map(|region| region.as_str()).unwrap_or("");
                             let captured = match pokeball {
                                 "Master Ball" => true,
                                 "Great Ball" => rand::thread_rng().gen_range(0..100) > 33,
                                 "Fast Ball" => rand::thread_rng().gen_range(0..100) > 66,
                                 _ => false,
                             };
-                            // Only support Kanto
-                            let supported_region = "Kanto" == region;
                             tokio::time::sleep(Duration::from_millis(1000)).await;
                             // Will it capture the Pokémon?
-                            if captured && supported_region {
+                            if captured {
                                 let shiny = rand::thread_rng().gen_range(0..4096) == 0;
                                 let pokemon = payload
                                     .name
@@ -218,13 +223,13 @@ pub async fn capture_pokemon(mut input: input::CapturePokemonOperationInput) -> 
                                     .unwrap_or("")
                                     .to_string();
                                 let pokedex: Vec<u8> = (0..255).collect();
-                                yield (Ok(crate::model::CapturePokemonEvents::Event(
+                                yield Ok(crate::model::CapturePokemonEvents::Event(
                                     crate::model::CaptureEvent::builder()
                                     .name(pokemon)
                                     .shiny(shiny)
                                     .pokedex_update(Blob::new(pokedex))
                                     .build(),
-                                )));
+                                ));
                             }
                         }
                     }
@@ -234,10 +239,10 @@ pub async fn capture_pokemon(mut input: input::CapturePokemonOperationInput) -> 
             }
         }
     };
-    return output::CapturePokemonOperationOutput::builder()
+    return Ok(output::CapturePokemonOperationOutput::builder()
         .events(output_stream.into())
         .build()
-        .unwrap();
+        .unwrap());
 }
 
 /// Empty operation used to benchmark the service.

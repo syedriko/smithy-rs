@@ -32,7 +32,6 @@ import software.amazon.smithy.rust.codegen.smithy.transformers.AddErrorMessage
 import software.amazon.smithy.rust.codegen.smithy.transformers.EventStreamNormalizer
 import software.amazon.smithy.rust.codegen.smithy.transformers.OperationNormalizer
 import software.amazon.smithy.rust.codegen.smithy.transformers.RecursiveShapeBoxer
-import software.amazon.smithy.rust.codegen.smithy.transformers.RemoveEventStreamOperations
 import software.amazon.smithy.rust.codegen.util.CommandFailed
 import software.amazon.smithy.rust.codegen.util.getTrait
 import software.amazon.smithy.rust.codegen.util.hasTrait
@@ -93,8 +92,6 @@ class CodegenVisitor(context: PluginContext, private val codegenDecorator: RustC
             .letIf(settings.codegenConfig.addMessageToErrors, AddErrorMessage::transform)
             // NormalizeOperations by ensuring every operation has an input & output shape
             .let(OperationNormalizer::transform)
-            // Drop unsupported event stream operations from the model
-            .let { RemoveEventStreamOperations.transform(it, settings) }
             // - Normalize event stream operations
             .let(EventStreamNormalizer::transform)
 

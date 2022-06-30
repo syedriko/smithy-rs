@@ -25,6 +25,7 @@ pub enum Error {
     TimestampValueTooLarge(DateTime),
     Marshalling(String),
     Unmarshalling(String),
+    EventStreamError(Box<dyn StdError + Send + Sync>),
 }
 
 impl StdError for Error {}
@@ -60,6 +61,7 @@ impl fmt::Display for Error {
             ),
             Marshalling(error) => write!(f, "failed to marshall message: {}", error),
             Unmarshalling(error) => write!(f, "failed to unmarshall message: {}", error),
+            EventStreamError(error) => write!(f, "error message: {}", error),
         }
     }
 }

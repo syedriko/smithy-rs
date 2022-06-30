@@ -147,7 +147,7 @@ impl<T, E> Receiver<T, E> {
         }
     }
 
-    fn unmarshall(&self, message: Message) -> Result<Option<T>, SdkError<E, RawMessage>> {
+    fn unmarshall(&mut self, message: Message) -> Result<Option<T>, SdkError<E, RawMessage>> {
         match self.unmarshaller.unmarshall(&message) {
             Ok(unmarshalled) => match unmarshalled {
                 UnmarshalledMessage::Event(event) => Ok(Some(event)),
@@ -156,10 +156,19 @@ impl<T, E> Receiver<T, E> {
                     raw: RawMessage::Decoded(message),
                 }),
             },
-            Err(err) => Err(SdkError::ResponseError {
-                err: Box::new(err),
-                raw: RawMessage::Decoded(message),
-            }),
+            Err(err) => {
+                if matches!(
+                    err,
+                    aws_smithy_eventstream::error::Error::EventStreamError(_)
+                ) {
+                    // Terminate the stream
+                    self.buffer = RecvBuf::EosPartial(Default::default())
+                }
+                Err(SdkError::ResponseError {
+                    err: Box::new(err),
+                    raw: RawMessage::Decoded(message),
+                })
+            }
         }
     }
 

@@ -99,7 +99,7 @@ class RestJson(private val codegenContext: CodegenContext) : Protocol {
     private val jsonDeserModule = RustModule.private("json_deser")
 
     override val httpBindingResolver: HttpBindingResolver =
-        RestJsonHttpBindingResolver(codegenContext.model, ProtocolContentTypes.consistent("application/json"))
+        RestJsonHttpBindingResolver(codegenContext.model, ProtocolContentTypes("application/json", "application/json", "application/vnd.amazon.eventstream"))
 
     override val defaultTimestampFormat: TimestampFormatTrait.Format = TimestampFormatTrait.Format.EPOCH_SECONDS
 

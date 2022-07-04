@@ -1,6 +1,6 @@
 /*
  * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- * SPDX-License-Identifier: Apache-2.0.
+ * SPDX-License-Identifier: Apache-2.0
  */
 
 use crate::changelog::ChangelogNext;
@@ -61,14 +61,6 @@ enum Args {
         all: bool,
         #[clap(long)]
         dry_run: Option<bool>,
-    },
-    UpdateChangelog {
-        #[clap(long)]
-        smithy_version: String,
-        #[clap(long)]
-        sdk_version: String,
-        #[clap(long)]
-        date: String,
     },
 }
 
@@ -165,18 +157,6 @@ fn main() -> Result<()> {
                 ok(DocsRs.fix_all(dry_run)?)?;
             }
         }
-        Args::UpdateChangelog {
-            smithy_version,
-            sdk_version,
-            date,
-        } => changelog::update_changelogs(
-            repo_root().join("CHANGELOG.next.toml"),
-            repo_root().join("CHANGELOG.md"),
-            repo_root().join("aws/SDK_CHANGELOG.md"),
-            &smithy_version,
-            &sdk_version,
-            &date,
-        )?,
     }
     Ok(())
 }

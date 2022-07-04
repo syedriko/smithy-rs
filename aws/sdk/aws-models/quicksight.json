@@ -94,6 +94,12 @@
                     "traits": {
                         "smithy.api#documentation": "<p>The main notification email for your Amazon QuickSight subscription.</p>"
                     }
+                },
+                "PublicSharingEnabled": {
+                    "target": "com.amazonaws.quicksight#Boolean",
+                    "traits": {
+                        "smithy.api#documentation": "<p>A boolean that indicates whether or not public sharing is enabled on an Amazon QuickSight account. For more information about enabling public sharing, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdatePublicSharingSettings.html\">UpdatePublicSharingSettings</a>.</p>"
+                    }
                 }
             },
             "traits": {
@@ -2240,7 +2246,7 @@
                 }
             ],
             "traits": {
-                "smithy.api#documentation": "<p>Creates an Amazon QuickSight group.</p>\n\t\t       <p>The permissions resource is\n\t\t\t\t\t<code>arn:aws:quicksight:us-east-1:<i><relevant-aws-account-id></i>:group/default/<i><group-name></i>\n            </code>.</p>\n\t\t       <p>The response is a group object.</p>",
+                "smithy.api#documentation": "<p>Creates an Amazon QuickSight group.</p>\n\t\t       <p>The permissions resource is\n\t\t\t\t\t<code>arn:aws:quicksight:<your-region>:<i><relevant-aws-account-id></i>:group/default/<i><group-name></i>\n            </code>.</p>\n\t\t       <p>The response is a group object.</p>",
                 "smithy.api#http": {
                     "method": "POST",
                     "uri": "/accounts/{AwsAccountId}/namespaces/{Namespace}/groups",
@@ -2318,7 +2324,7 @@
                 "Namespace": {
                     "target": "com.amazonaws.quicksight#Namespace",
                     "traits": {
-                        "smithy.api#documentation": "<p>The namespace. Currently, you should set this to <code>default</code>.</p>",
+                        "smithy.api#documentation": "<p>The namespace that you want the user to be a part of.</p>",
                         "smithy.api#httpLabel": {},
                         "smithy.api#required": {}
                     }
@@ -2376,7 +2382,7 @@
                 "Namespace": {
                     "target": "com.amazonaws.quicksight#Namespace",
                     "traits": {
-                        "smithy.api#documentation": "<p>The namespace. Currently, you should set this to <code>default</code>.</p>",
+                        "smithy.api#documentation": "<p>The namespace that you want the group to be a part of.</p>",
                         "smithy.api#httpLabel": {},
                         "smithy.api#required": {}
                     }
@@ -5401,7 +5407,7 @@
                 "Namespace": {
                     "target": "com.amazonaws.quicksight#Namespace",
                     "traits": {
-                        "smithy.api#documentation": "<p>The namespace. Currently, you should set this to <code>default</code>.</p>",
+                        "smithy.api#documentation": "<p>The namespace of the group that you want to remove a user from.</p>",
                         "smithy.api#httpLabel": {},
                         "smithy.api#required": {}
                     }
@@ -5448,7 +5454,7 @@
                 "Namespace": {
                     "target": "com.amazonaws.quicksight#Namespace",
                     "traits": {
-                        "smithy.api#documentation": "<p>The namespace. Currently, you should set this to <code>default</code>.</p>",
+                        "smithy.api#documentation": "<p>The namespace of the group that you want to delete.</p>",
                         "smithy.api#httpLabel": {},
                         "smithy.api#required": {}
                     }
@@ -7424,6 +7430,104 @@
                 }
             }
         },
+        "com.amazonaws.quicksight#DescribeGroupMembership": {
+            "type": "operation",
+            "input": {
+                "target": "com.amazonaws.quicksight#DescribeGroupMembershipRequest"
+            },
+            "output": {
+                "target": "com.amazonaws.quicksight#DescribeGroupMembershipResponse"
+            },
+            "errors": [
+                {
+                    "target": "com.amazonaws.quicksight#AccessDeniedException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#InternalFailureException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#InvalidParameterValueException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#PreconditionNotMetException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#ResourceNotFoundException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#ResourceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#ThrottlingException"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "<p>Use the <code>DescribeGroupMembership</code> operation to determine if a user is a\n\t\t\tmember of the specified group. If the user exists and is a member of the specified\n\t\t\tgroup, an associated <code>GroupMember</code> object is returned.</p>",
+                "smithy.api#http": {
+                    "method": "GET",
+                    "uri": "/accounts/{AwsAccountId}/namespaces/{Namespace}/groups/{GroupName}/members/{MemberName}",
+                    "code": 200
+                }
+            }
+        },
+        "com.amazonaws.quicksight#DescribeGroupMembershipRequest": {
+            "type": "structure",
+            "members": {
+                "MemberName": {
+                    "target": "com.amazonaws.quicksight#GroupMemberName",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The user name of the user that you want to search for.</p>",
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "GroupName": {
+                    "target": "com.amazonaws.quicksight#GroupName",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The name of the group that you want to search.</p>",
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "AwsAccountId": {
+                    "target": "com.amazonaws.quicksight#AwsAccountId",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The ID for the Amazon Web Services account that the group is in. Currently, you use the ID for the \n         Amazon Web Services account that contains your Amazon QuickSight account.</p>",
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "Namespace": {
+                    "target": "com.amazonaws.quicksight#Namespace",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The namespace that includes the group you are searching within.</p>",
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.amazonaws.quicksight#DescribeGroupMembershipResponse": {
+            "type": "structure",
+            "members": {
+                "GroupMember": {
+                    "target": "com.amazonaws.quicksight#GroupMember"
+                },
+                "RequestId": {
+                    "target": "com.amazonaws.quicksight#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The Amazon Web Services request ID for this operation.</p>"
+                    }
+                },
+                "Status": {
+                    "target": "com.amazonaws.quicksight#StatusCode",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The HTTP status of the request.</p>",
+                        "smithy.api#httpResponseCode": {}
+                    }
+                }
+            }
+        },
         "com.amazonaws.quicksight#DescribeGroupRequest": {
             "type": "structure",
             "members": {
@@ -7446,7 +7550,7 @@
                 "Namespace": {
                     "target": "com.amazonaws.quicksight#Namespace",
                     "traits": {
-                        "smithy.api#documentation": "<p>The namespace. Currently, you should set this to <code>default</code>.</p>",
+                        "smithy.api#documentation": "<p>The namespace of the group that you want described.</p>",
                         "smithy.api#httpLabel": {},
                         "smithy.api#required": {}
                     }
@@ -9039,7 +9143,7 @@
                 }
             ],
             "traits": {
-                "smithy.api#documentation": "<p>Generates an embed URL that you can use to embed an Amazon QuickSight dashboard in your website, without having to register any reader users. Before you use this action, make sure that you have configured the dashboards and permissions.</p>\n        <p>The following rules apply to the generated URL:</p>\n        <ul>\n            <li>\n                <p>It contains a temporary bearer token. It is valid for 5 minutes after it is generated. Once redeemed within this period, it cannot be re-used again.</p>\n            </li>\n            <li>\n                <p>The URL validity period should not be confused with the actual session lifetime\n        that can be customized using the <code>\n                     <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_GenerateEmbedUrlForAnonymousUser.html#QS-GenerateEmbedUrlForAnonymousUser-request-SessionLifetimeInMinutes\">SessionLifetimeInMinutes</a>\n                  </code> parameter.</p>\n                <p>The resulting user session is valid for 15 minutes (default) to 10 hours (maximum).</p>\n            </li>\n            <li>\n                <p>You are charged only when the URL is used or there is interaction with Amazon QuickSight.</p>\n            </li>\n         </ul>\n        <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics.html\">Embedded Analytics</a> in the <i>Amazon QuickSight User\n            Guide</i>.</p>\n        <p>For more information about the high-level steps for embedding and for an interactive demo of the ways you can customize embedding, visit the <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-portal.html\">Amazon QuickSight Developer Portal</a>.</p>",
+                "smithy.api#documentation": "<p>Generates an embed URL that you can use to embed an Amazon QuickSight dashboard in your website, without having to register any reader users. Before you use this action, make sure that you have configured the dashboards and permissions.</p>\n        <p>The following rules apply to the generated URL:</p>\n        <ul>\n            <li>\n                <p>It contains a temporary bearer token. It is valid for 5 minutes after it is generated. Once redeemed within this period, it cannot be re-used again.</p>\n            </li>\n            <li>\n                <p>The URL validity period should not be confused with the actual session lifetime\n        that can be customized using the <code>\n                     <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_GenerateEmbedUrlForAnonymousUser.html#QS-GenerateEmbedUrlForAnonymousUser-request-SessionLifetimeInMinutes\">SessionLifetimeInMinutes</a>\n                  </code> parameter.</p>\n                <p>The resulting user session is valid for 15 minutes (minimum) to 10 hours (maximum). The default session duration is 10 hours. </p>\n            </li>\n            <li>\n                <p>You are charged only when the URL is used or there is interaction with Amazon QuickSight.</p>\n            </li>\n         </ul>\n        <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics.html\">Embedded Analytics</a> in the <i>Amazon QuickSight User\n            Guide</i>.</p>\n        <p>For more information about the high-level steps for embedding and for an interactive demo of the ways you can customize embedding, visit the <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-portal.html\">Amazon QuickSight Developer Portal</a>.</p>",
                 "smithy.api#http": {
                     "method": "POST",
                     "uri": "/accounts/{AwsAccountId}/embed-url/anonymous-user",
@@ -9080,7 +9184,7 @@
                 "AuthorizedResourceArns": {
                     "target": "com.amazonaws.quicksight#ArnList",
                     "traits": {
-                        "smithy.api#documentation": "<p>The Amazon Resource Names for the Amazon QuickSight resources that the user is authorized to access during the lifetime of the session. If you choose <code>Dashboard</code> embedding experience, pass the list of dashboard ARNs in the account that you want the user to be able to view.</p>",
+                        "smithy.api#documentation": "<p>The Amazon Resource Names for the Amazon QuickSight resources that the user is authorized to access during the lifetime of the session. If you choose <code>Dashboard</code> embedding experience, pass the list of dashboard ARNs in the account that you want the user to be able to view. Currently, you can pass up to 25 dashboard ARNs in each API call.</p>",
                         "smithy.api#required": {}
                     }
                 },
@@ -9158,7 +9262,7 @@
                 }
             ],
             "traits": {
-                "smithy.api#documentation": "<p>Generates an embed URL that you can use to embed an Amazon QuickSight experience in your website. This action can be used for any type of user registered in an Amazon QuickSight account. Before you use this action, make sure that you have configured the relevant Amazon QuickSight resource and permissions.</p>\n        <p>The following rules apply to the generated URL:</p>\n        <ul>\n            <li>\n                <p>It contains a temporary bearer token. It is valid for 5 minutes after it is generated. Once redeemed within this period, it cannot be re-used again.</p>\n            </li>\n            <li>\n                <p>The URL validity period should not be confused with the actual session lifetime\n        that can be customized using the <code>\n                     <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_GenerateEmbedUrlForRegisteredUser.html#QS-GenerateEmbedUrlForRegisteredUser-request-SessionLifetimeInMinutes\">SessionLifetimeInMinutes</a>\n                  </code> parameter.</p>\n                <p>The resulting user session is valid for 15 minutes (default) to 10 hours (maximum).</p>\n            </li>\n            <li>\n                <p>You are charged only when the URL is used or there is interaction with Amazon QuickSight.</p>\n            </li>\n         </ul>\n        <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics.html\">Embedded Analytics</a> in the <i>Amazon QuickSight User\n            Guide</i>.</p>\n            <p>For more information about the high-level steps for embedding and for an interactive demo of the ways you can customize embedding, visit the <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-portal.html\">Amazon QuickSight Developer Portal</a>.</p>",
+                "smithy.api#documentation": "<p>Generates an embed URL that you can use to embed an Amazon QuickSight experience in your website. This action can be used for any type of user registered in an Amazon QuickSight account. Before you use this action, make sure that you have configured the relevant Amazon QuickSight resource and permissions.</p>\n        <p>The following rules apply to the generated URL:</p>\n        <ul>\n            <li>\n                <p>It contains a temporary bearer token. It is valid for 5 minutes after it is generated. Once redeemed within this period, it cannot be re-used again.</p>\n            </li>\n            <li>\n                <p>The URL validity period should not be confused with the actual session lifetime\n        that can be customized using the <code>\n                     <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_GenerateEmbedUrlForRegisteredUser.html#QS-GenerateEmbedUrlForRegisteredUser-request-SessionLifetimeInMinutes\">SessionLifetimeInMinutes</a>\n                  </code> parameter.</p>\n                <p>The resulting user session is valid for 15 minutes (minimum) to 10 hours (maximum). The default session duration is 10 hours.</p>\n            </li>\n            <li>\n                <p>You are charged only when the URL is used or there is interaction with Amazon QuickSight.</p>\n            </li>\n         </ul>\n        <p>For more information, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/embedded-analytics.html\">Embedded Analytics</a> in the <i>Amazon QuickSight User\n            Guide</i>.</p>\n            <p>For more information about the high-level steps for embedding and for an interactive demo of the ways you can customize embedding, visit the <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/quicksight-dev-portal.html\">Amazon QuickSight Developer Portal</a>.</p>",
                 "smithy.api#http": {
                     "method": "POST",
                     "uri": "/accounts/{AwsAccountId}/embed-url/registered-user",
@@ -9606,6 +9710,28 @@
                 }
             }
         },
+        "com.amazonaws.quicksight#GroupFilterAttribute": {
+            "type": "string",
+            "traits": {
+                "smithy.api#enum": [
+                    {
+                        "value": "GROUP_NAME",
+                        "name": "GROUP_NAME"
+                    }
+                ]
+            }
+        },
+        "com.amazonaws.quicksight#GroupFilterOperator": {
+            "type": "string",
+            "traits": {
+                "smithy.api#enum": [
+                    {
+                        "value": "StartsWith",
+                        "name": "StartsWith"
+                    }
+                ]
+            }
+        },
         "com.amazonaws.quicksight#GroupList": {
             "type": "list",
             "member": {
@@ -9655,6 +9781,47 @@
                     "min": 1
                 },
                 "smithy.api#pattern": "^[\\u0020-\\u00FF]+$"
+            }
+        },
+        "com.amazonaws.quicksight#GroupSearchFilter": {
+            "type": "structure",
+            "members": {
+                "Operator": {
+                    "target": "com.amazonaws.quicksight#GroupFilterOperator",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The comparison operator that you want to use as a filter, for example <code>\"Operator\":\n                \"StartsWith\"</code>. Currently, the only supported operator is\n                <code>StartsWith</code>.</p>",
+                        "smithy.api#required": {}
+                    }
+                },
+                "Name": {
+                    "target": "com.amazonaws.quicksight#GroupFilterAttribute",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The name of the value that you want to use as a filter, for example <code>\"Name\":\n                \"GROUP_NAME\"</code>. Currently, the only supported name is\n            <code>GROUP_NAME</code>.</p>",
+                        "smithy.api#required": {}
+                    }
+                },
+                "Value": {
+                    "target": "com.amazonaws.quicksight#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The value of the named item, in this case <code>GROUP_NAME</code>, that you want to use as a filter.</p>",
+                        "smithy.api#required": {}
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "<p>A <code>GroupSearchFilter</code> object that you want to apply to your search.</p>"
+            }
+        },
+        "com.amazonaws.quicksight#GroupSearchFilterList": {
+            "type": "list",
+            "member": {
+                "target": "com.amazonaws.quicksight#GroupSearchFilter"
+            },
+            "traits": {
+                "smithy.api#length": {
+                    "min": 1,
+                    "max": 1
+                }
             }
         },
         "com.amazonaws.quicksight#GutterStyle": {
@@ -10561,6 +10728,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "AnalysisSummaryList",
                     "pageSize": "MaxResults"
                 }
             }
@@ -10661,6 +10829,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "DashboardVersionSummaryList",
                     "pageSize": "MaxResults"
                 }
             }
@@ -10763,6 +10932,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "DashboardSummaryList",
                     "pageSize": "MaxResults"
                 }
             }
@@ -10860,6 +11030,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "DataSetSummaries",
                     "pageSize": "MaxResults"
                 }
             }
@@ -10957,6 +11128,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "DataSources",
                     "pageSize": "MaxResults"
                 }
             }
@@ -11303,7 +11475,7 @@
                 "Namespace": {
                     "target": "com.amazonaws.quicksight#Namespace",
                     "traits": {
-                        "smithy.api#documentation": "<p>The namespace. Currently, you should set this to <code>default</code>.</p>",
+                        "smithy.api#documentation": "<p>The namespace of the group that you want a list of users from.</p>",
                         "smithy.api#httpLabel": {},
                         "smithy.api#required": {}
                     }
@@ -11412,7 +11584,7 @@
                 "Namespace": {
                     "target": "com.amazonaws.quicksight#Namespace",
                     "traits": {
-                        "smithy.api#documentation": "<p>The namespace. Currently, you should set this to <code>default</code>.</p>",
+                        "smithy.api#documentation": "<p>The namespace that you want a list of groups from.</p>",
                         "smithy.api#httpLabel": {},
                         "smithy.api#required": {}
                     }
@@ -11713,6 +11885,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "Ingestions",
                     "pageSize": "MaxResults"
                 }
             }
@@ -11827,6 +12000,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "Namespaces",
                     "pageSize": "MaxResults"
                 }
             }
@@ -11995,6 +12169,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "TemplateAliasList",
                     "pageSize": "MaxResults"
                 }
             }
@@ -12103,6 +12278,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "TemplateVersionSummaryList",
                     "pageSize": "MaxResults"
                 }
             }
@@ -12211,6 +12387,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "TemplateSummaryList",
                     "pageSize": "MaxResults"
                 }
             }
@@ -12420,6 +12597,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "ThemeVersionSummaryList",
                     "pageSize": "MaxResults"
                 }
             }
@@ -12531,6 +12709,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "ThemeSummaryList",
                     "pageSize": "MaxResults"
                 }
             }
@@ -13736,6 +13915,9 @@
                     "target": "com.amazonaws.quicksight#DescribeGroup"
                 },
                 {
+                    "target": "com.amazonaws.quicksight#DescribeGroupMembership"
+                },
+                {
                     "target": "com.amazonaws.quicksight#DescribeIAMPolicyAssignment"
                 },
                 {
@@ -13862,6 +14044,9 @@
                     "target": "com.amazonaws.quicksight#SearchFolders"
                 },
                 {
+                    "target": "com.amazonaws.quicksight#SearchGroups"
+                },
+                {
                     "target": "com.amazonaws.quicksight#TagResource"
                 },
                 {
@@ -13914,6 +14099,9 @@
                 },
                 {
                     "target": "com.amazonaws.quicksight#UpdateIpRestriction"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#UpdatePublicSharingSettings"
                 },
                 {
                     "target": "com.amazonaws.quicksight#UpdateTemplate"
@@ -14110,7 +14298,7 @@
                 "CustomPermissionsName": {
                     "target": "com.amazonaws.quicksight#RoleName",
                     "traits": {
-                        "smithy.api#documentation": "<p>(Enterprise edition only) The name of the custom permissions profile that you want to\n            assign to this user. Customized permissions allows you to control a user's access by\n            restricting access the following operations:</p>\n        <ul>\n            <li>\n                <p>Create and update data sources</p>\n            </li>\n            <li>\n                <p>Create and update datasets</p>\n            </li>\n            <li>\n                <p>Create and update email reports</p>\n            </li>\n            <li>\n                <p>Subscribe to email reports</p>\n            </li>\n         </ul>\n        <p>To add custom permissions to an existing user, use <code>\n               <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdateUser.html\">UpdateUser</a>\n            </code> instead.</p>\n        <p>A set of custom permissions includes any combination of these restrictions. Currently,\n            you need to create the profile names for custom permission sets by using the Amazon QuickSight\n            console. Then, you use the <code>RegisterUser</code> API operation to assign the named set of\n            permissions to a QuickSight user. </p>\n        <p>Amazon QuickSight custom permissions are applied through IAM policies. Therefore, they\n            override the permissions typically granted by assigning Amazon QuickSight users to one of the\n            default security cohorts in Amazon QuickSight (admin, author, reader).</p>\n        <p>This feature is available only to Amazon QuickSight Enterprise edition subscriptions.</p>"
+                        "smithy.api#documentation": "<p>(Enterprise edition only) The name of the custom permissions profile that you want to\n            assign to this user. Customized permissions allows you to control a user's access by\n            restricting access the following operations:</p>\n        <ul>\n            <li>\n                <p>Create and update data sources</p>\n            </li>\n            <li>\n                <p>Create and update datasets</p>\n            </li>\n            <li>\n                <p>Create and update email reports</p>\n            </li>\n            <li>\n                <p>Subscribe to email reports</p>\n            </li>\n         </ul>\n        <p>To add custom permissions to an existing user, use <code>\n               <a href=\"https://docs.aws.amazon.com/quicksight/latest/APIReference/API_UpdateUser.html\">UpdateUser</a>\n            </code> instead.</p>\n        <p>A set of custom permissions includes any combination of these restrictions. Currently,\n            you need to create the profile names for custom permission sets by using the Amazon QuickSight\n            console. Then, you use the <code>RegisterUser</code> API operation to assign the named set of\n            permissions to a Amazon QuickSight user. </p>\n        <p>Amazon QuickSight custom permissions are applied through IAM policies. Therefore, they\n            override the permissions typically granted by assigning Amazon QuickSight users to one of the\n            default security cohorts in Amazon QuickSight (admin, author, reader).</p>\n        <p>This feature is available only to Amazon QuickSight Enterprise edition subscriptions.</p>"
                     }
                 },
                 "ExternalLoginFederationProviderType": {
@@ -14870,6 +15058,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "AnalysisSummaryList",
                     "pageSize": "MaxResults"
                 }
             }
@@ -14975,6 +15164,7 @@
                 "smithy.api#paginated": {
                     "inputToken": "NextToken",
                     "outputToken": "NextToken",
+                    "items": "DashboardSummaryList",
                     "pageSize": "MaxResults"
                 }
             }
@@ -15141,6 +15331,122 @@
                     "target": "com.amazonaws.quicksight#String",
                     "traits": {
                         "smithy.api#documentation": "<p>The Amazon Web Services request ID for this operation.</p>"
+                    }
+                }
+            }
+        },
+        "com.amazonaws.quicksight#SearchGroups": {
+            "type": "operation",
+            "input": {
+                "target": "com.amazonaws.quicksight#SearchGroupsRequest"
+            },
+            "output": {
+                "target": "com.amazonaws.quicksight#SearchGroupsResponse"
+            },
+            "errors": [
+                {
+                    "target": "com.amazonaws.quicksight#AccessDeniedException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#InternalFailureException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#InvalidNextTokenException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#InvalidParameterValueException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#PreconditionNotMetException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#ResourceNotFoundException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#ResourceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#ThrottlingException"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "<p>Use the <code>SearchGroups</code> operation to search groups in a specified Amazon QuickSight namespace using the supplied filters.</p>",
+                "smithy.api#http": {
+                    "method": "POST",
+                    "uri": "/accounts/{AwsAccountId}/namespaces/{Namespace}/groups-search",
+                    "code": 200
+                }
+            }
+        },
+        "com.amazonaws.quicksight#SearchGroupsRequest": {
+            "type": "structure",
+            "members": {
+                "AwsAccountId": {
+                    "target": "com.amazonaws.quicksight#AwsAccountId",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The ID for the Amazon Web Services account that the group is in. Currently, you use the ID for the\n          Amazon Web Services account that contains your Amazon QuickSight account.</p>",
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "NextToken": {
+                    "target": "com.amazonaws.quicksight#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>A pagination token that can be used in a subsequent request.</p>",
+                        "smithy.api#httpQuery": "next-token"
+                    }
+                },
+                "MaxResults": {
+                    "target": "com.amazonaws.quicksight#MaxResults",
+                    "traits": {
+                        "smithy.api#box": {},
+                        "smithy.api#documentation": "<p>The maximum number of results to return from this request.</p>",
+                        "smithy.api#httpQuery": "max-results"
+                    }
+                },
+                "Namespace": {
+                    "target": "com.amazonaws.quicksight#Namespace",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The namespace that you want to search.</p>",
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "Filters": {
+                    "target": "com.amazonaws.quicksight#GroupSearchFilterList",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The structure for the search filters that you want to apply to your search.</p>",
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.amazonaws.quicksight#SearchGroupsResponse": {
+            "type": "structure",
+            "members": {
+                "GroupList": {
+                    "target": "com.amazonaws.quicksight#GroupList",
+                    "traits": {
+                        "smithy.api#documentation": "<p>A list of groups in a specified namespace that match the filters you set in your <code>SearchGroups</code> request.</p>"
+                    }
+                },
+                "NextToken": {
+                    "target": "com.amazonaws.quicksight#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>A pagination token that can be used in a subsequent request.</p>"
+                    }
+                },
+                "RequestId": {
+                    "target": "com.amazonaws.quicksight#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The Amazon Web Services request ID for this operation.</p>"
+                    }
+                },
+                "Status": {
+                    "target": "com.amazonaws.quicksight#StatusCode",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The HTTP status of the request.</p>",
+                        "smithy.api#httpResponseCode": {}
                     }
                 }
             }
@@ -18335,7 +18641,7 @@
                 "Namespace": {
                     "target": "com.amazonaws.quicksight#Namespace",
                     "traits": {
-                        "smithy.api#documentation": "<p>The namespace. Currently, you should set this to <code>default</code>.</p>",
+                        "smithy.api#documentation": "<p>The namespace of the group that you want to update.</p>",
                         "smithy.api#httpLabel": {},
                         "smithy.api#required": {}
                     }
@@ -18596,6 +18902,80 @@
                 "smithy.api#length": {
                     "min": 0,
                     "max": 2
+                }
+            }
+        },
+        "com.amazonaws.quicksight#UpdatePublicSharingSettings": {
+            "type": "operation",
+            "input": {
+                "target": "com.amazonaws.quicksight#UpdatePublicSharingSettingsRequest"
+            },
+            "output": {
+                "target": "com.amazonaws.quicksight#UpdatePublicSharingSettingsResponse"
+            },
+            "errors": [
+                {
+                    "target": "com.amazonaws.quicksight#AccessDeniedException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#InternalFailureException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#InvalidParameterValueException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#ResourceNotFoundException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#ThrottlingException"
+                },
+                {
+                    "target": "com.amazonaws.quicksight#UnsupportedPricingPlanException"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "<p>Use the UpdatePublicSharingSettings operation to enable or disable the public sharing settings of an Amazon QuickSight dashboard.</p>\n         <p>To use this operation, enable session capacity pricing on your Amazon QuickSight account.</p>\n         <p>Before you can enable public sharing on your account, you need to allow public sharing permissions to an administrative user in the IAM console. For more information on using IAM with Amazon QuickSight, see <a href=\"https://docs.aws.amazon.com/quicksight/latest/user/security_iam_service-with-iam.html\">Using Amazon QuickSight with IAM</a>.</p>",
+                "smithy.api#http": {
+                    "method": "PUT",
+                    "uri": "/accounts/{AwsAccountId}/public-sharing-settings",
+                    "code": 200
+                }
+            }
+        },
+        "com.amazonaws.quicksight#UpdatePublicSharingSettingsRequest": {
+            "type": "structure",
+            "members": {
+                "AwsAccountId": {
+                    "target": "com.amazonaws.quicksight#AwsAccountId",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The Amazon Web Services account ID associated with your Amazon QuickSight subscription.</p>",
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "PublicSharingEnabled": {
+                    "target": "com.amazonaws.quicksight#Boolean",
+                    "traits": {
+                        "smithy.api#documentation": "<p>A boolean that indicates whether or not public sharing is enabled on a Amazon QuickSight account.</p>"
+                    }
+                }
+            }
+        },
+        "com.amazonaws.quicksight#UpdatePublicSharingSettingsResponse": {
+            "type": "structure",
+            "members": {
+                "RequestId": {
+                    "target": "com.amazonaws.quicksight#String",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The Amazon Web Services request ID for this operation.</p>"
+                    }
+                },
+                "Status": {
+                    "target": "com.amazonaws.quicksight#StatusCode",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The HTTP status of the request.</p>",
+                        "smithy.api#httpResponseCode": {}
+                    }
                 }
             }
         },
@@ -19357,7 +19737,7 @@
                 "CustomPermissionsName": {
                     "target": "com.amazonaws.quicksight#RoleName",
                     "traits": {
-                        "smithy.api#documentation": "<p>(Enterprise edition only) The name of the custom permissions profile that you want to\n            assign to this user. Customized permissions allows you to control a user's access by\n            restricting access the following operations:</p>\n        <ul>\n            <li>\n                <p>Create and update data sources</p>\n            </li>\n            <li>\n                <p>Create and update datasets</p>\n            </li>\n            <li>\n                <p>Create and update email reports</p>\n            </li>\n            <li>\n                <p>Subscribe to email reports</p>\n            </li>\n         </ul>\n        <p>A set of custom permissions includes any combination of these restrictions. Currently,\n            you need to create the profile names for custom permission sets by using the Amazon QuickSight\n            console. Then, you use the <code>RegisterUser</code> API operation to assign the named set of\n            permissions to a QuickSight user. </p>\n        <p>Amazon QuickSight custom permissions are applied through IAM policies. Therefore, they\n            override the permissions typically granted by assigning Amazon QuickSight users to one of the\n            default security cohorts in Amazon QuickSight (admin, author, reader).</p>\n        <p>This feature is available only to Amazon QuickSight Enterprise edition subscriptions.</p>"
+                        "smithy.api#documentation": "<p>(Enterprise edition only) The name of the custom permissions profile that you want to\n            assign to this user. Customized permissions allows you to control a user's access by\n            restricting access the following operations:</p>\n        <ul>\n            <li>\n                <p>Create and update data sources</p>\n            </li>\n            <li>\n                <p>Create and update datasets</p>\n            </li>\n            <li>\n                <p>Create and update email reports</p>\n            </li>\n            <li>\n                <p>Subscribe to email reports</p>\n            </li>\n         </ul>\n        <p>A set of custom permissions includes any combination of these restrictions. Currently,\n            you need to create the profile names for custom permission sets by using the Amazon QuickSight\n            console. Then, you use the <code>RegisterUser</code> API operation to assign the named set of\n            permissions to a Amazon QuickSight user. </p>\n        <p>Amazon QuickSight custom permissions are applied through IAM policies. Therefore, they\n            override the permissions typically granted by assigning Amazon QuickSight users to one of the\n            default security cohorts in Amazon QuickSight (admin, author, reader).</p>\n        <p>This feature is available only to Amazon QuickSight Enterprise edition subscriptions.</p>"
                     }
                 },
                 "UnapplyCustomPermissions": {

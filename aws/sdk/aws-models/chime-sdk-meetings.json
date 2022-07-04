@@ -60,10 +60,72 @@
                     "traits": {
                         "smithy.api#documentation": "<p>The join token used by the Amazon Chime SDK attendee.</p>"
                     }
+                },
+                "Capabilities": {
+                    "target": "com.amazonaws.chimesdkmeetings#AttendeeCapabilities",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The capabilities (audio, video, or content) assigned to an attendee.</p>"
+                    }
                 }
             },
             "traits": {
                 "smithy.api#documentation": "<p>An Amazon Chime SDK meeting attendee. Includes a unique \n           <code>AttendeeId</code> and <code>JoinToken</code>. The \n           <code>JoinToken</code>\n           allows a client to authenticate and join as the specified attendee. The \n           <code>JoinToken</code>\n           expires when the meeting ends, or when \n           <a>DeleteAttendee</a>\n           is called. After that, the attendee is unable to join the meeting.\n       </p>\n       \n         <p>We recommend securely transferring each <code>JoinToken</code> from your server application\n           to the client so that no other client has access to the token except for the one\n           authorized to represent the attendee.</p>"
+            }
+        },
+        "com.amazonaws.chimesdkmeetings#AttendeeCapabilities": {
+            "type": "structure",
+            "members": {
+                "Audio": {
+                    "target": "com.amazonaws.chimesdkmeetings#MediaCapabilities",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The audio capability assigned to an attendee.</p>",
+                        "smithy.api#required": {}
+                    }
+                },
+                "Video": {
+                    "target": "com.amazonaws.chimesdkmeetings#MediaCapabilities",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The video capability assigned to an attendee.</p>",
+                        "smithy.api#required": {}
+                    }
+                },
+                "Content": {
+                    "target": "com.amazonaws.chimesdkmeetings#MediaCapabilities",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The content capability assigned to an attendee.</p>",
+                        "smithy.api#required": {}
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "<p>The media capabilities of an attendee, including audio, video and content. </p>"
+            }
+        },
+        "com.amazonaws.chimesdkmeetings#AttendeeIdItem": {
+            "type": "structure",
+            "members": {
+                "AttendeeId": {
+                    "target": "com.amazonaws.chimesdkmeetings#GuidString",
+                    "traits": {
+                        "smithy.api#documentation": "<p>A list of one or more attendee IDs.</p>",
+                        "smithy.api#required": {}
+                    }
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "<p>A structure that contains one or more attendee IDs.</p>"
+            }
+        },
+        "com.amazonaws.chimesdkmeetings#AttendeeIdsList": {
+            "type": "list",
+            "member": {
+                "target": "com.amazonaws.chimesdkmeetings#AttendeeIdItem"
+            },
+            "traits": {
+                "smithy.api#length": {
+                    "min": 1,
+                    "max": 250
+                }
             }
         },
         "com.amazonaws.chimesdkmeetings#AttendeeList": {
@@ -130,10 +192,19 @@
                     "target": "com.amazonaws.chimesdkmeetings#NotFoundException"
                 },
                 {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceFailureException"
+                },
+                {
                     "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
                 },
                 {
+                    "target": "com.amazonaws.chimesdkmeetings#ThrottlingException"
+                },
+                {
                     "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#UnprocessableEntityException"
                 }
             ],
             "traits": {
@@ -188,6 +259,70 @@
                 }
             }
         },
+        "com.amazonaws.chimesdkmeetings#BatchUpdateAttendeeCapabilitiesExcept": {
+            "type": "operation",
+            "input": {
+                "target": "com.amazonaws.chimesdkmeetings#BatchUpdateAttendeeCapabilitiesExceptRequest"
+            },
+            "output": {
+                "target": "smithy.api#Unit"
+            },
+            "errors": [
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#BadRequestException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ConflictException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ForbiddenException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#NotFoundException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "<p>Updates <code>AttendeeCapabilities</code> except the capabilities listed in an <code>ExcludedAttendeeIds</code> table.</p>",
+                "smithy.api#http": {
+                    "method": "PUT",
+                    "uri": "/meetings/{MeetingId}/attendees/capabilities?operation=batch-update-except",
+                    "code": 200
+                }
+            }
+        },
+        "com.amazonaws.chimesdkmeetings#BatchUpdateAttendeeCapabilitiesExceptRequest": {
+            "type": "structure",
+            "members": {
+                "MeetingId": {
+                    "target": "com.amazonaws.chimesdkmeetings#GuidString",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The ID of the meeting associated with the update request.</p>",
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "ExcludedAttendeeIds": {
+                    "target": "com.amazonaws.chimesdkmeetings#AttendeeIdsList",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The <code>AttendeeIDs</code> that you want to exclude from one or more capabilities.</p>",
+                        "smithy.api#required": {}
+                    }
+                },
+                "Capabilities": {
+                    "target": "com.amazonaws.chimesdkmeetings#AttendeeCapabilities",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The capabilities (<code>audio</code>, <code>video</code>, or <code>content</code>) that you want to update.</p>",
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
         "com.amazonaws.chimesdkmeetings#Boolean": {
             "type": "boolean"
         },
@@ -212,6 +347,9 @@
             "operations": [
                 {
                     "target": "com.amazonaws.chimesdkmeetings#BatchCreateAttendee"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#BatchUpdateAttendeeCapabilitiesExcept"
                 },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#CreateAttendee"
@@ -242,6 +380,9 @@
                 },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#StopMeetingTranscription"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#UpdateAttendeeCapabilities"
                 }
             ]
         },
@@ -254,6 +395,25 @@
                 },
                 "smithy.api#pattern": "^[-_a-zA-Z0-9]*$",
                 "smithy.api#sensitive": {}
+            }
+        },
+        "com.amazonaws.chimesdkmeetings#ConflictException": {
+            "type": "structure",
+            "members": {
+                "Code": {
+                    "target": "com.amazonaws.chimesdkmeetings#String"
+                },
+                "Message": {
+                    "target": "com.amazonaws.chimesdkmeetings#String"
+                },
+                "RequestId": {
+                    "target": "com.amazonaws.chimesdkmeetings#String"
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "<p>Multiple instances of the same request have been made simultaneously.</p>",
+                "smithy.api#error": "client",
+                "smithy.api#httpError": 409
             }
         },
         "com.amazonaws.chimesdkmeetings#CreateAttendee": {
@@ -278,7 +438,13 @@
                     "target": "com.amazonaws.chimesdkmeetings#NotFoundException"
                 },
                 {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceFailureException"
+                },
+                {
                     "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ThrottlingException"
                 },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
@@ -339,6 +505,12 @@
                         "smithy.api#documentation": "<p>The Amazon Chime SDK external user ID. An idempotency token. Links the attendee to an identity managed by a builder application.</p>",
                         "smithy.api#required": {}
                     }
+                },
+                "Capabilities": {
+                    "target": "com.amazonaws.chimesdkmeetings#AttendeeCapabilities",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The capabilities (<code>audio</code>, <code>video</code>, or <code>content</code>) that you want to grant an attendee. If you don't specify capabilities, all users have send and receive capabilities on \n            all media channels by default.</p>"
+                    }
                 }
             }
         },
@@ -350,6 +522,12 @@
                     "traits": {
                         "smithy.api#documentation": "<p>The Amazon Chime SDK external user ID. An idempotency token. Links the attendee to an identity managed by a builder application.</p>",
                         "smithy.api#required": {}
+                    }
+                },
+                "Capabilities": {
+                    "target": "com.amazonaws.chimesdkmeetings#AttendeeCapabilities",
+                    "traits": {
+                        "smithy.api#documentation": "<p>A list of one or more capabilities.</p>"
                     }
                 }
             },
@@ -393,10 +571,19 @@
                     "target": "com.amazonaws.chimesdkmeetings#BadRequestException"
                 },
                 {
+                    "target": "com.amazonaws.chimesdkmeetings#ForbiddenException"
+                },
+                {
                     "target": "com.amazonaws.chimesdkmeetings#LimitExceededException"
                 },
                 {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceFailureException"
+                },
+                {
                     "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ThrottlingException"
                 },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
@@ -453,6 +640,12 @@
                     "traits": {
                         "smithy.api#documentation": "<p>Lists the audio and video features enabled for a meeting, such as echo reduction.</p>"
                     }
+                },
+                "PrimaryMeetingId": {
+                    "target": "com.amazonaws.chimesdkmeetings#PrimaryMeetingId",
+                    "traits": {
+                        "smithy.api#documentation": "<p>When specified, replicates the media from the primary meeting to the new meeting.</p>"
+                    }
                 }
             }
         },
@@ -480,10 +673,19 @@
                     "target": "com.amazonaws.chimesdkmeetings#BadRequestException"
                 },
                 {
+                    "target": "com.amazonaws.chimesdkmeetings#ForbiddenException"
+                },
+                {
                     "target": "com.amazonaws.chimesdkmeetings#LimitExceededException"
                 },
                 {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceFailureException"
+                },
+                {
                     "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ThrottlingException"
                 },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
@@ -547,6 +749,12 @@
                         "smithy.api#documentation": "<p>The attendee information, including attendees' IDs and join tokens.</p>",
                         "smithy.api#required": {}
                     }
+                },
+                "PrimaryMeetingId": {
+                    "target": "com.amazonaws.chimesdkmeetings#PrimaryMeetingId",
+                    "traits": {
+                        "smithy.api#documentation": "<p>When specified, replicates the media from the primary meeting to the new meeting.</p>"
+                    }
                 }
             }
         },
@@ -590,12 +798,30 @@
             "input": {
                 "target": "com.amazonaws.chimesdkmeetings#DeleteAttendeeRequest"
             },
+            "output": {
+                "target": "smithy.api#Unit"
+            },
             "errors": [
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#BadRequestException"
+                },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#ForbiddenException"
                 },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#NotFoundException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceFailureException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ThrottlingException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
                 }
             ],
             "traits": {
@@ -633,12 +859,30 @@
             "input": {
                 "target": "com.amazonaws.chimesdkmeetings#DeleteMeetingRequest"
             },
+            "output": {
+                "target": "smithy.api#Unit"
+            },
             "errors": [
                 {
                     "target": "com.amazonaws.chimesdkmeetings#BadRequestException"
                 },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#ForbiddenException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#NotFoundException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceFailureException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ThrottlingException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
                 }
             ],
             "traits": {
@@ -861,6 +1105,18 @@
                 },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#NotFoundException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceFailureException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ThrottlingException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
                 }
             ],
             "traits": {
@@ -921,6 +1177,18 @@
                 },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#NotFoundException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceFailureException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ThrottlingException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
                 }
             ],
             "traits": {
@@ -1011,6 +1279,18 @@
                 },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#NotFoundException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceFailureException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ThrottlingException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
                 }
             ],
             "traits": {
@@ -1069,6 +1349,29 @@
                         "smithy.api#documentation": "<p>The token to use to retrieve the next page of results.</p>"
                     }
                 }
+            }
+        },
+        "com.amazonaws.chimesdkmeetings#MediaCapabilities": {
+            "type": "string",
+            "traits": {
+                "smithy.api#enum": [
+                    {
+                        "value": "SendReceive",
+                        "name": "SEND_RECEIVE"
+                    },
+                    {
+                        "value": "Send",
+                        "name": "SEND"
+                    },
+                    {
+                        "value": "Receive",
+                        "name": "RECEIVE"
+                    },
+                    {
+                        "value": "None",
+                        "name": "NONE"
+                    }
+                ]
             }
         },
         "com.amazonaws.chimesdkmeetings#MediaPlacement": {
@@ -1174,6 +1477,12 @@
                     "traits": {
                         "smithy.api#documentation": "<p>The features available to a meeting, such as Amazon Voice Focus.</p>"
                     }
+                },
+                "PrimaryMeetingId": {
+                    "target": "com.amazonaws.chimesdkmeetings#PrimaryMeetingId",
+                    "traits": {
+                        "smithy.api#documentation": "<p>When specified, replicates the media from the primary meeting to this meeting.</p>"
+                    }
                 }
             },
             "traits": {
@@ -1221,7 +1530,7 @@
                 "RequestId": {
                     "target": "com.amazonaws.chimesdkmeetings#String",
                     "traits": {
-                        "smithy.api#documentation": "<p>The request id associated with the call responsible for the exception.</p>"
+                        "smithy.api#documentation": "<p>The request ID associated with the call responsible for the exception.</p>"
                     }
                 }
             },
@@ -1257,6 +1566,15 @@
                 "smithy.api#documentation": "<p>The configuration for resource targets to receive notifications when meeting and attendee events occur.</p>"
             }
         },
+        "com.amazonaws.chimesdkmeetings#PrimaryMeetingId": {
+            "type": "string",
+            "traits": {
+                "smithy.api#length": {
+                    "min": 2,
+                    "max": 64
+                }
+            }
+        },
         "com.amazonaws.chimesdkmeetings#ResultMax": {
             "type": "integer",
             "traits": {
@@ -1269,6 +1587,25 @@
         },
         "com.amazonaws.chimesdkmeetings#RetryAfterSeconds": {
             "type": "string"
+        },
+        "com.amazonaws.chimesdkmeetings#ServiceFailureException": {
+            "type": "structure",
+            "members": {
+                "Code": {
+                    "target": "com.amazonaws.chimesdkmeetings#String"
+                },
+                "Message": {
+                    "target": "com.amazonaws.chimesdkmeetings#String"
+                },
+                "RequestId": {
+                    "target": "com.amazonaws.chimesdkmeetings#String"
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "<p>The service is currently unavailable.</p>",
+                "smithy.api#error": "server",
+                "smithy.api#httpError": 500
+            }
         },
         "com.amazonaws.chimesdkmeetings#ServiceUnavailableException": {
             "type": "structure",
@@ -1304,6 +1641,9 @@
             "input": {
                 "target": "com.amazonaws.chimesdkmeetings#StartMeetingTranscriptionRequest"
             },
+            "output": {
+                "target": "smithy.api#Unit"
+            },
             "errors": [
                 {
                     "target": "com.amazonaws.chimesdkmeetings#BadRequestException"
@@ -1318,7 +1658,13 @@
                     "target": "com.amazonaws.chimesdkmeetings#NotFoundException"
                 },
                 {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceFailureException"
+                },
+                {
                     "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ThrottlingException"
                 },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
@@ -1361,6 +1707,9 @@
             "input": {
                 "target": "com.amazonaws.chimesdkmeetings#StopMeetingTranscriptionRequest"
             },
+            "output": {
+                "target": "smithy.api#Unit"
+            },
             "errors": [
                 {
                     "target": "com.amazonaws.chimesdkmeetings#BadRequestException"
@@ -1372,7 +1721,13 @@
                     "target": "com.amazonaws.chimesdkmeetings#NotFoundException"
                 },
                 {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceFailureException"
+                },
+                {
                     "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ThrottlingException"
                 },
                 {
                     "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
@@ -1410,6 +1765,25 @@
                     "min": 0,
                     "max": 4096
                 }
+            }
+        },
+        "com.amazonaws.chimesdkmeetings#ThrottlingException": {
+            "type": "structure",
+            "members": {
+                "Code": {
+                    "target": "com.amazonaws.chimesdkmeetings#String"
+                },
+                "Message": {
+                    "target": "com.amazonaws.chimesdkmeetings#String"
+                },
+                "RequestId": {
+                    "target": "com.amazonaws.chimesdkmeetings#String"
+                }
+            },
+            "traits": {
+                "smithy.api#documentation": "<p>The number of requests exceeds the limit.</p>",
+                "smithy.api#error": "client",
+                "smithy.api#httpError": 429
             }
         },
         "com.amazonaws.chimesdkmeetings#TranscribeContentIdentificationType": {
@@ -1692,6 +2066,10 @@
                     {
                         "value": "auto",
                         "name": "AUTO"
+                    },
+                    {
+                        "value": "us-gov-west-1",
+                        "name": "US_GOV_WEST_1"
                     }
                 ]
             }
@@ -1777,6 +2155,79 @@
                 "smithy.api#documentation": "<p>The request was well-formed but was unable to be followed due to semantic errors.</p>",
                 "smithy.api#error": "client",
                 "smithy.api#httpError": 422
+            }
+        },
+        "com.amazonaws.chimesdkmeetings#UpdateAttendeeCapabilities": {
+            "type": "operation",
+            "input": {
+                "target": "com.amazonaws.chimesdkmeetings#UpdateAttendeeCapabilitiesRequest"
+            },
+            "output": {
+                "target": "com.amazonaws.chimesdkmeetings#UpdateAttendeeCapabilitiesResponse"
+            },
+            "errors": [
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#BadRequestException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ConflictException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ForbiddenException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#NotFoundException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#ServiceUnavailableException"
+                },
+                {
+                    "target": "com.amazonaws.chimesdkmeetings#UnauthorizedException"
+                }
+            ],
+            "traits": {
+                "smithy.api#documentation": "<p>The capabilties that you want to update.</p>",
+                "smithy.api#http": {
+                    "method": "PUT",
+                    "uri": "/meetings/{MeetingId}/attendees/{AttendeeId}/capabilities",
+                    "code": 200
+                }
+            }
+        },
+        "com.amazonaws.chimesdkmeetings#UpdateAttendeeCapabilitiesRequest": {
+            "type": "structure",
+            "members": {
+                "MeetingId": {
+                    "target": "com.amazonaws.chimesdkmeetings#GuidString",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The ID of the meeting associated with the update request.</p>",
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "AttendeeId": {
+                    "target": "com.amazonaws.chimesdkmeetings#GuidString",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The ID of the attendee associated with the update request.</p>",
+                        "smithy.api#httpLabel": {},
+                        "smithy.api#required": {}
+                    }
+                },
+                "Capabilities": {
+                    "target": "com.amazonaws.chimesdkmeetings#AttendeeCapabilities",
+                    "traits": {
+                        "smithy.api#documentation": "<p>The capabilties that you want to update.</p>",
+                        "smithy.api#required": {}
+                    }
+                }
+            }
+        },
+        "com.amazonaws.chimesdkmeetings#UpdateAttendeeCapabilitiesResponse": {
+            "type": "structure",
+            "members": {
+                "Attendee": {
+                    "target": "com.amazonaws.chimesdkmeetings#Attendee"
+                }
             }
         }
     }

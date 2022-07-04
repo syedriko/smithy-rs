@@ -9,7 +9,7 @@ use clap::Parser;
 use ordinal::Ordinal;
 use serde::Serialize;
 use smithy_rs_tool_common::changelog::{
-    Changelog, HandAuthoredEntry, Reference, SdkModelChangeKind, SdkModelEntry,
+    Changelog, HandAuthoredEntry, Reference, SdkModelChangeKind, SdkModelEntry, SdkAffected
 };
 use smithy_rs_tool_common::git::{find_git_repository_root, Git, GitCLI};
 use std::env;
@@ -29,7 +29,7 @@ pub const EXAMPLE_ENTRY: &str = r#"
 # [[smithy-rs]]
 # message = "Fix typos in module documentation for generated crates"
 # references = ["smithy-rs#920"]
-# meta = { "breaking" = false, "tada" = false, "bug" = false }
+# meta = { "breaking" = false, "tada" = false, "bug" = false, "sdk" = "[server | client | both]" }
 # author = "rcoh"
 "#;
 
@@ -58,6 +58,9 @@ pub struct RenderArgs {
     pub source_to_truncate: PathBuf,
     #[clap(long, action)]
     pub changelog_output: PathBuf,
+    /// where should smity_rs entries for server sdk 
+    #[clap(long, action)]
+    pub server_changelog_output: Option<PathBuf>,
     /// Optional path to output a release manifest file to
     #[clap(long, action)]
     pub release_manifest_output: Option<PathBuf>,
@@ -275,47 +278,127 @@ fn update_changelogs(
     aws_sdk_rust_metadata: &ReleaseMetadata,
 ) -> Result<()> {
     let changelog = load_changelogs(args)?;
-    let release_metadata = match args.change_set {
-        ChangeSet::AwsSdk => aws_sdk_rust_metadata,
-        ChangeSet::SmithyRs => smithy_rs_metadata,
-    };
     let entries = ChangelogEntries::from(changelog);
     let entries = entries.filter(
         smithy_rs,
         args.change_set,
         args.previous_release_versions_manifest.as_deref(),
     )?;
-    let (release_header, release_notes) = render(&entries, &release_metadata.title);
+    match args.change_set {
+        ChangeSet::AwsSdk => render_aws_rust(args, &entries, &aws_sdk_rust_metadata),
+        ChangeSet::SmithyRs => render_smithy_rs(args, &entries, &smithy_rs_metadata)
+    }?;
+    std::fs::write(&args.source_to_truncate, EXAMPLE_ENTRY.trim())
+        .context("failed to truncate source")?;
+    eprintln!("Changelogs updated!");
+    Ok(())
+}
+
+fn render_aws_rust(args : &RenderArgs, entries : &[ChangelogEntry], release_metadata : &ReleaseMetadata) -> Result<()> {
+    let (release_header, release_notes) = render(entries, &release_metadata.title);
     if let Some(output_path) = &args.release_manifest_output {
-        let release_manifest = ReleaseManifest {
-            tag_name: release_metadata.tag.clone(),
-            name: release_metadata.title.clone(),
-            body: release_notes.clone(),
-            // All releases are pre-releases for now
-            prerelease: true,
-        };
+        write_release_manifest(output_path, release_metadata, &release_notes)?
+    }
+    let _ = write_changelog_md(&release_header, &release_notes, &args.changelog_output)?;
+    Ok(())
+}
+
+fn render_smithy_rs(args: &RenderArgs, entries: &[ChangelogEntry], release_metadata: &ReleaseMetadata) -> Result<()> {
+    let server_output_path = args.server_changelog_output.as_ref()
+            .ok_or_else(|| anyhow::Error::msg(format!("server sdk output path has not been supplied")))?;
+    let (client_entries, server_entries) = partition_entries(entries);
+
+    let (release_header, release_notes) = render(&client_entries, &release_metadata.title);
+    let (_, server_release_notes) = render(&server_entries, &release_metadata.title);
+
+    if let Some(output_path) = &args.release_manifest_output {
+        let mut notes = String::new();
+        notes.push_str("## Client SDK Changes");
+        notes.push_str(release_notes.as_str());
+        notes.push_str("## Server SDK Changes");
+        notes.push_str(server_release_notes.as_str());
+
+        write_release_manifest(output_path, release_metadata, &notes)?;
+    }
+    
+    let old_client_contents = write_changelog_md(&release_header, &release_notes, &args.changelog_output)?;
+
+    if let Err(e) = write_changelog_md(&release_header, &server_release_notes, &server_output_path) {
+        // restore client sdk changelog back to its original state
         std::fs::write(
-            output_path.join(&release_metadata.manifest_name),
-            serde_json::to_string_pretty(&release_manifest)?,
+            &args.changelog_output,
+            old_client_contents
         )
-        .context("failed to write release manifest")?;
+        .context(format!("server changelog output could not be written (error: {e}). Failed to restore client changelog!"))?;
+
+        Err(anyhow::Error::msg("Could not write server release notes. Error: {e}"))
+    }
+    else {
+        Ok(())
+    }
+}
+
+/// partitions given list into client and server, while keeping SdkAffected::Both 
+/// a member of both of them
+fn partition_entries(entries : &[ChangelogEntry]) -> (Vec<ChangelogEntry>, Vec<ChangelogEntry>) {
+    let mut client_entries = Vec::<ChangelogEntry>::new();
+    let mut server_entries = Vec::<ChangelogEntry>::new();
+    // separate entries between client and server, keeping those that affect both SDKs in each
+    for entry in entries {
+        match entry {
+            ChangelogEntry::AwsSdkModel(_) => {
+                client_entries.push(entry.clone());
+                server_entries.push(entry.clone());
+            }
+            ChangelogEntry::HandAuthored(hand_entry) => {
+                match hand_entry.meta.sdk.unwrap_or_default() {
+                    SdkAffected::Both => {
+                        client_entries.push(entry.clone());
+                        server_entries.push(entry.clone());
+                    },
+                    SdkAffected::Client => {
+                        client_entries.push(entry.clone());
+                    },
+                    SdkAffected::Server => {
+                        server_entries.push(entry.clone());
+                    }
+                }
+            }
+        }
     }
 
+    (client_entries, server_entries)
+}
+
+fn write_release_manifest(output_path: &PathBuf, release_metadata : &ReleaseMetadata, release_notes: &String) -> Result<()> {
+    let release_manifest = ReleaseManifest {
+        tag_name: release_metadata.tag.clone(),
+        name: release_metadata.title.clone(),
+        body: release_notes.clone(),
+        // All releases are pre-releases for now
+        prerelease: true,
+    };
+    std::fs::write(
+        output_path.join(&release_metadata.manifest_name),
+        serde_json::to_string_pretty(&release_manifest)?,
+    )
+    .context("failed to write release manifest")?;
+    Ok(())
+}
+
+fn write_changelog_md(release_header : &String, release_notes: &String, changelog_output : &PathBuf) -> Result<String> {
     let mut update = USE_UPDATE_CHANGELOGS.to_string();
     update.push('\n');
     update.push_str(&release_header);
     update.push_str(&release_notes);
 
-    let current = std::fs::read_to_string(&args.changelog_output)
-        .context("failed to read rendered destination changelog")?
+    let current = std::fs::read_to_string(&changelog_output)
+        .context("failed to read rendered destination changelog ${changelog_output}")?
         .replace(USE_UPDATE_CHANGELOGS, "");
     update.push_str(&current);
-    std::fs::write(&args.changelog_output, update).context("failed to write rendered changelog")?;
+    std::fs::write(&changelog_output, update).context("failed to write rendered changelog")?;
 
-    std::fs::write(&args.source_to_truncate, EXAMPLE_ENTRY.trim())
-        .context("failed to truncate source")?;
-    eprintln!("Changelogs updated!");
-    Ok(())
+    Ok(current)
 }
 
 fn render_handauthored<'a>(entries: impl Iterator<Item = &'a HandAuthoredEntry>, out: &mut String) {
@@ -432,7 +515,7 @@ fn render(entries: &[ChangelogEntry], release_header: &str) -> (String, String) 
 mod test {
     use super::{
         date_based_release_metadata, render, version_based_release_metadata, Changelog,
-        ChangelogEntries, ChangelogEntry,
+        ChangelogEntries, ChangelogEntry, partition_entries,
     };
     use time::OffsetDateTime;
 
@@ -572,5 +655,129 @@ Thank you for your contributions! ❤
         assert_eq!("v0.11.0 (March 3rd, 1973)", result.title);
         assert_eq!("v0.11.0", result.tag);
         assert_eq!("some-other-manifest.json", result.manifest_name);
+    }
+
+    macro_rules! get_message {
+        ($x: expr) => {
+            &$x.next().unwrap().hand_authored().unwrap().message
+        };
+    }
+
+    #[test]
+    fn test_partition_client_server() {
+        let sample = r#"
+[[smithy-rs]]
+author = "external-contrib"
+message = """
+this is a multiline
+message
+"""
+meta = { breaking = false, tada = true, bug = false, sdk = "server" }
+references = ["smithy-rs#446"]
+
+[[aws-sdk-model]]
+module = "aws-sdk-s3"
+version = "0.14.0"
+kind = "Feature"
+message = "Some new API to do X"
+
+[[smithy-rs]]
+author = "external-contrib"
+message = "a client message"
+meta = { breaking = false, tada = true, bug = false, sdk = "client" }
+references = ["smithy-rs#446"]
+
+[[smithy-rs]]
+message = "a change for both"
+meta = { breaking = false, tada = true, bug = false, sdk = "both" }
+references = ["smithy-rs#446"]
+author = "rcoh"
+
+[[smithy-rs]]
+message = "a missing sdk meta"
+meta = { breaking = false, tada = true, bug = false }
+references = ["smithy-rs#446"]
+author = "rcoh"
+"#;
+        let changelog: Changelog = toml::from_str(sample).expect("valid changelog");
+        let ChangelogEntries {
+            aws_sdk_rust : _,
+            smithy_rs,
+        } = changelog.into();
+
+        let (client, server) = partition_entries(&smithy_rs);
+        let mut i = smithy_rs.iter();
+        let mut s = server.iter();
+        let mut c = client.iter();
+        assert!(s.len() == 2, "Server log entries length should be 2 but instead is {}", s.len()); 
+        assert_eq!(get_message!(s), get_message!(i));
+        assert_eq!(get_message!(c), get_message!(i));
+        let both_msg = get_message!(i);
+        assert_eq!(get_message!(c), both_msg);
+        assert_eq!(get_message!(s), both_msg);
+        assert_eq!(get_message!(c), get_message!(i));
+    }
+
+    #[test]
+    fn test_empty_render() {
+        let smithy_rs = Vec::<ChangelogEntry>::new();
+        let (release_title, release_notes) = render(&smithy_rs, "some header");
+
+        assert_eq!(release_title, "some header\n===========\n");
+        assert_eq!(release_notes, "");
+    }
+
+    #[test]
+    fn test_no_server_entry() {
+        let sample = r#"
+[[smithy-rs]]
+author = "external-contrib"
+message = """
+this is a multiline
+message
+"""
+meta = { breaking = false, tada = true, bug = false }
+references = ["smithy-rs#446"]
+
+[[aws-sdk-model]]
+module = "aws-sdk-s3"
+version = "0.14.0"
+kind = "Feature"
+message = "Some new API to do X"
+
+[[smithy-rs]]
+author = "external-contrib"
+message = "a client message"
+meta = { breaking = false, tada = true, bug = false, sdk = "client" }
+references = ["smithy-rs#446"]
+
+[[smithy-rs]]
+message = "a change for both"
+meta = { breaking = false, tada = true, bug = false, sdk = "client" }
+references = ["smithy-rs#446"]
+author = "rcoh"
+
+[[smithy-rs]]
+message = "a missing sdk meta"
+meta = { breaking = false, tada = true, bug = false }
+references = ["smithy-rs#446"]
+author = "rcoh"
+        "#;
+
+        let changelog: Changelog = toml::from_str(sample).expect("valid changelog");
+        let ChangelogEntries {
+            aws_sdk_rust : _,
+            smithy_rs,
+        } = changelog.into();
+
+        let (client, server) = partition_entries(&smithy_rs);
+        let mut i = smithy_rs.iter();
+        let s = server.iter();
+        let mut c = client.iter();
+        assert!(s.len() == 0, "Server log entries length should be 0 but instead is {}", s.len()); 
+        assert_eq!(get_message!(c), get_message!(i));
+        assert_eq!(get_message!(c), get_message!(i));
+        assert_eq!(get_message!(c), get_message!(i));
+        assert_eq!(get_message!(c), get_message!(i));
     }
 }

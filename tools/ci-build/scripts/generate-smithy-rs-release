@@ -20,6 +20,7 @@ changelogger render \
     --change-set smithy-rs \
     --source CHANGELOG.next.toml \
     --source-to-truncate CHANGELOG.next.toml \
+	--server-changelog-output codegen-server/SERVER_CHANGELOG.md \
     --changelog-output CHANGELOG.md \
     --release-manifest-output "${ARTIFACTS_DIR}"
 # Commit changelog changes if there are any

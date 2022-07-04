@@ -217,6 +217,7 @@ fn render_smithy_rs_test() {
         date_override: Some(OffsetDateTime::UNIX_EPOCH),
         previous_release_versions_manifest: None,
         smithy_rs_location: Some(tmp_dir.path().into()),
+        server_changelog_output: None,
     })
     .unwrap();
 
@@ -303,6 +304,7 @@ fn render_aws_sdk_test() {
         date_override: Some(OffsetDateTime::UNIX_EPOCH),
         previous_release_versions_manifest: Some(versions_manifest_path),
         smithy_rs_location: Some(tmp_dir.path().into()),
+        server_changelog_output: None,
     })
     .unwrap();
 
@@ -346,4 +348,152 @@ Old entry contents
 }"#,
         release_manifest
     );
+}
+
+#[test]
+fn render_server_entries() {
+    const NEXT_CHANGELOG : &'static str = r#"
+# Example changelog entries
+# [[aws-sdk-rust]]
+# message = "Fix typos in module documentation for generated crates"
+# references = ["smithy-rs#920"]
+# meta = { "breaking" = false, "tada" = false, "bug" = false }
+# author = "rcoh"
+#
+# [[smithy-rs]]
+# message = "Fix typos in module documentation for generated crates"
+# references = ["smithy-rs#920"]
+# meta = { "breaking" = false, "tada" = false, "bug" = false }
+# author = "rcoh"
+[[aws-sdk-rust]]
+message = "Some change"
+references = ["aws-sdk-rust#123", "smithy-rs#456"]
+meta = { "breaking" = false, "tada" = false, "bug" = true }
+since-commit = "REPLACE_SINCE_COMMIT_1"
+author = "test-dev"
+
+[[smithy-rs]]
+message = "First change - server"
+references = ["smithy-rs#1"]
+meta = { "breaking" = false, "tada" = false, "bug" = false, sdk = "server" }
+author = "another-dev"
+
+[[smithy-rs]]
+message = "Second change - both"
+references = ["smithy-rs#2"]
+meta = { "breaking" = false, "tada" = false, "bug" = false, sdk = "both" }
+author = "another-dev"
+
+[[smithy-rs]]
+message = "Third change - empty"
+references = ["smithy-rs#3"]
+meta = { "breaking" = false, "tada" = false, "bug" = false }
+author = "rcoh"
+
+[[smithy-rs]]
+message = "Fourth change - client"
+references = ["smithy-rs#3"]
+meta = { "breaking" = false, "tada" = false, "bug" = false, "sdk" = "client" }
+author = "rcoh"
+"#;
+    let tmp_dir = TempDir::new().unwrap();
+    let source_path = tmp_dir.path().join("source.toml");
+    let dest_path = tmp_dir.path().join("dest.md");
+    let server_dest_path = tmp_dir.path().join("server.dest.md");
+    let release_manifest_path = tmp_dir.path().join("smithy-rs-release-manifest.json");
+
+    create_fake_repo_root(tmp_dir.path(), "0.42.0", "0.12.0");
+
+    fs::write(&source_path, NEXT_CHANGELOG).unwrap();
+    fs::write(
+        &dest_path,
+        format!(
+            "{}\nv0.41.0 (Some date in the past)\n=========\n\nOld entry contents\n",
+            USE_UPDATE_CHANGELOGS
+        ),
+    )
+    .unwrap();
+    fs::write(
+        &server_dest_path,
+        format!(
+            "{}\nv0.41.0 (Some date in the past)\n=========\n\nOld entry contents\n",
+            USE_UPDATE_CHANGELOGS
+        ),
+    )
+    .unwrap();
+    fs::write(&release_manifest_path, "overwrite-me").unwrap();
+
+    subcommand_render(&RenderArgs {
+        change_set: ChangeSet::SmithyRs,
+        independent_versioning: false,
+        source: vec![source_path.clone()],
+        source_to_truncate: source_path.clone(),
+        changelog_output: dest_path.clone(),
+        server_changelog_output: Some(server_dest_path.clone()),
+        release_manifest_output: Some(tmp_dir.path().into()),
+        date_override: Some(OffsetDateTime::UNIX_EPOCH),
+        previous_release_versions_manifest: None,
+        smithy_rs_location: Some(tmp_dir.path().into()),
+    })
+    .unwrap();
+
+    let source = fs::read_to_string(&source_path).unwrap();
+    let dest = fs::read_to_string(&dest_path).unwrap();
+    let server_dest = fs::read_to_string(&server_dest_path).unwrap();
+
+    println!("{server_dest}"); 
+
+
+    let release_manifest = fs::read_to_string(&release_manifest_path).unwrap();
+
+    // source file should be empty
+    pretty_assertions::assert_str_eq!(EXAMPLE_ENTRY.trim(), source);
+    pretty_assertions::assert_str_eq!(
+        r#"<!-- Do not manually edit this file. Use the `changelogger` tool. -->
+    v0.42.0 (January 1st, 1970)
+    ===========================
+    **Breaking Changes**
+    ⚠ ([smithy-rs#1234](https://github.com/awslabs/smithy-rs/issues/1234)) Another change
+    
+    **New this release:**
+    - ([smithy-rs#1234](https://github.com/awslabs/smithy-rs/issues/1234), @another-dev) Another change
+
+    **Contributors**
+    Thank you for your contributions! ❤
+    - @another-dev ([smithy-rs#1234](https://github.com/awslabs/smithy-rs/issues/1234))
+
+    v0.41.0 (Some date in the past)
+    =========
+
+    Old entry contents
+    "#,
+        dest
+    );
+    pretty_assertions::assert_str_eq!(
+        r#"<!-- Do not manually edit this file. Use the `changelogger` tool. -->
+    v0.42.0 (January 1st, 1970)
+    ===========================
+    **New this release:**
+    - ([smithy-rs#1234](https://github.com/awslabs/smithy-rs/issues/1234), @another-dev) Another change
+
+    **Contributors**
+    Thank you for your contributions! ❤
+    - @another-dev ([smithy-rs#1234](https://github.com/awslabs/smithy-rs/issues/1234))
+
+    v0.41.0 (Some date in the past)
+    =========
+
+    Old entry contents
+    "#,
+        server_dest
+    );
+    pretty_assertions::assert_str_eq!(
+        r#"{
+    "tagName": "v0.42.0",
+    "name": "v0.42.0 (January 1st, 1970)",
+    "body": "**New this release:**\n- ([smithy-rs#1234](https://github.com/awslabs/smithy-rs/issues/1234), @another-dev) Another change\n\n**Contributors**\nThank you for your contributions! ❤\n- @another-dev ([smithy-rs#1234](https://github.com/awslabs/smithy-rs/issues/1234))\n",
+    "prerelease": true
+    }"#,
+        release_manifest
+);
 }
